@@ -1,46 +1,66 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/../src/functions.php';
 
+ini_set('display_errors', '1'); 
+error_reporting(E_ALL);
 date_default_timezone_set('Europe/Moscow');
 
-$appName ="Заявки сотрудников";
-stream_set_blocking$version ='1.0';
-string
-$maxExperience=50;
-int
-$targetAverage=4.5;
-float
-$departments=['Разработка','Аналитика','Тестирование','Поддержка'];
-$hasDepartments=count($departments)>0;
-bool
+$employees = loadEmployees(DATA_DIR . '/employees.csv');
+$departments = departmentsOf($employees);
+$visible = $employees;
+
+$appName = 'Заявки сотрудников';
+$total   = count($employees);
+$avgExp  = $total > 0 ? round(array_sum(array_column($employees, 'experience')) / $total, 1) : 0.0;
+$hasData = $total > 0;
 ?>
 <!DOCTYPE html>
-<html lang='ru'>
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <mata name ="viewport" content="width=device-width, initial-scale=1">
-    <title><?=$appName ?></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><?= e($appName) ?></title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1><?=$appName ?></h1>
-        <p>Версия<?=$version ?> . <?= date('d.m.Y H:i') ?></p>
-    </header>
+  <header class="top">
+    <div class="brand"><?= e($appName) ?></div>
+    <span>Версия <?= e(APP_VERSION) ?> · <?= date('d.m.Y H:i') ?></span>
+  </header>
 
-    <main>
-        <h2>Отделы(пока заготовка)</h2>
-        <?php if($hasDepartments): ?>
-            <ul>
-                <?php foreach ($departments as $department): ?>
-                    <li><?=$department ?></li>
-                <?php endforeach: ?>
-            </ul>
-        <?php else: ?>
-            <p>Список отделов пуст</p>
-        <?php endif;?>
-        <p>Максимальный стаж в форме: <?=$maxExperience ?>лет</p>
-        <p>Целевой средний стаж: <?= $targetAverage ?>года</p>
-    </main>
+  <main class="wrap">
+    <section class="stats" aria-label="Сводка">
+      <div class="card"><b>Сотрудников</b><?= $total ?></div>
+      <div class="card"><b>Отделов</b><?= count($departments) ?></div>
+      <div class="card"><b>Средний стаж, лет</b><?= $avgExp ?></div>
+    </section>
+
+    <section id="employees" class="panel">
+      <h2>Сотрудники</h2>
+
+      <?php if (!$hasData): ?>
+        <p class="notice">Не удалось загрузить data/employees.csv.</p>
+      <?php else: ?>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Имя</th><th>Отдел</th><th>Стаж</th><th>Email</th></tr>
+          </thead>
+          <tbody>
+            <?php foreach ($visible as $employee): ?>
+              <tr>
+                <td><?= $employee['id'] ?></td>
+                <td><?= e($employee['name']) ?></td>
+                <td><span class="pill"><?= e($employee['department']) ?></span></td>
+                <td><?= $employee['experience'] ?></td>
+                <td><?= e($employee['email']) ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+        <p class="muted">Показано записей: <?= count($visible) ?> из <?= $total ?></p>
+      <?php endif; ?>
+    </section>
+  </main>
 </body>
 </html>
-    
