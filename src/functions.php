@@ -61,3 +61,20 @@ function departmentsOf(array $employees): array
         array_unique(array_column($employees, 'department'))
     );
 }
+
+function inputValue(array $source, string $key): string
+{
+    $value = $source[$key] ?? '';
+    return is_string($value) ? trim($value) : '';
+}
+
+function filterEmployees(array $employees, string $department): array
+{
+    if ($department === '') {
+        return $employees;
+    }
+    return array_values(array_filter(
+        $employees,
+        fn (array $employee): bool => $employee['department'] === $department
+    ));
+}

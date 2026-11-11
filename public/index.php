@@ -8,7 +8,8 @@ date_default_timezone_set('Europe/Moscow');
 
 $employees = loadEmployees(DATA_DIR . '/employees.csv');
 $departments = departmentsOf($employees);
-$visible = $employees;
+$selectedDepartment = inputValue($_GET, 'department');
+$visible = filterEmployees($employees, $selectedDepartment);
 
 $appName = 'Заявки сотрудников';
 $total   = count($employees);
@@ -38,9 +39,23 @@ $hasData = $total > 0;
 
     <section id="employees" class="panel">
       <h2>Сотрудники</h2>
+      <form method="get" class="filter" action="#employees">
+        <label for="department-filter">Отдел</label>
+        <select id="department-filter" name="department">
+          <option value="">Все</option>
+          <?php foreach ($departments as $department): ?>
+            <option value="<?= e($department) ?>"<?= $department === $selectedDepartment ? ' selected' : '' ?>>
+              <?= e($department) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+        <button type="submit">Показать</button>
+      </form>
 
       <?php if (!$hasData): ?>
         <p class="notice">Не удалось загрузить data/employees.csv.</p>
+      <?php elseif ($visible === []): ?>
+        <p class="notice">В отделе «<?= e($selectedDepartment) ?>» записей нет.</p>
       <?php else: ?>
         <table>
           <thead>
