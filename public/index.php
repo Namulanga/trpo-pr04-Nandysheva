@@ -10,6 +10,21 @@ $employees = loadEmployees(DATA_DIR . '/employees.csv');
 $departments = departmentsOf($employees);
 $selectedDepartment = inputValue($_GET, 'department');
 $visible = filterEmployees($employees, $selectedDepartment);
+$fields = ['name', 'email', 'department', 'experience'];
+$old    = array_fill_keys($fields, '');
+$errors = [];
+$saved  = null;
+
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    foreach ($fields as $field) {
+        $old[$field] = inputValue($_POST, $field);
+    }
+    $errors = validateInput($old, $departments);
+    if ($errors === []) {
+        $saved = $old;
+        $old   = array_fill_keys($fields, '');
+    }
+}
 
 $appName = 'Заявки сотрудников';
 $total   = count($employees);
@@ -75,6 +90,52 @@ $hasData = $total > 0;
         </table>
         <p class="muted">Показано записей: <?= count($visible) ?> из <?= $total ?></p>
       <?php endif; ?>
+    </section>
+    <section id="form" class="panel">
+      <h2>Новая заявка сотрудника</h2>
+
+      <?php if ($saved !== null): ?>
+        <div class="ok" role="status">
+          Заявка принята: <?= e($saved['name']) ?>, <?= e($saved['department']) ?>,
+          стаж <?= (int) $saved['experience'] ?> лет, <?= e($saved['email']) ?>.
+        </div>
+      <?php elseif ($errors !== []): ?>
+        <div class="errors" role="alert">
+          <b>Исправьте ошибки:</b>
+          <ul>
+            <?php foreach ($errors as $message): ?>
+              <li><?= e($message) ?></li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+      <?php endif; ?>
+
+      <form method="post" action="#form" novalidate>
+        <label for="name">Имя</label>
+        <input id="name" name="name" type="text" value="<?= e($old['name']) ?>">
+        <?php if (isset($errors['name'])): ?><span class="err"><?= e($errors['name']) ?></span><?php endif; ?>
+
+        <label for="email">Email</label>
+        <input id="email" name="email" type="text" value="<?= e($old['email']) ?>">
+        <?php if (isset($errors['email'])): ?><span class="err"><?= e($errors['email']) ?></span><?php endif; ?>
+
+        <label for="department">Отдел</label>
+        <select id="department" name="department">
+          <option value="">— выберите —</option>
+          <?php foreach ($departments as $department): ?>
+            <option value="<?= e($department) ?>"<?= $department === $old['department'] ? ' selected' : '' ?>>
+              <?= e($department) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+        <?php if (isset($errors['department'])): ?><span class="err"><?= e($errors['department']) ?></span><?php endif; ?>
+
+        <label for="experience">Стаж, лет</label>
+        <input id="experience" name="experience" type="text" inputmode="numeric" value="<?= e($old['experience']) ?>">
+        <?php if (isset($errors['experience'])): ?><span class="err"><?= e($errors['experience']) ?></span><?php endif; ?>
+
+        <button type="submit">Отправить</button>
+      </form>
     </section>
   </main>
 </body>

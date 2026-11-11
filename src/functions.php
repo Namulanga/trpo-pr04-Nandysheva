@@ -78,3 +78,35 @@ function filterEmployees(array $employees, string $department): array
         fn (array $employee): bool => $employee['department'] === $department
     ));
 }
+function validateInput(array $input, array $departments): array
+{
+    $errors = [];
+
+    $name = trim((string) ($input['name'] ?? ''));
+    if ($name === '') {
+        $errors['name'] = 'Укажите имя';
+    } elseif (mb_strlen($name) < 2 || mb_strlen($name) > 60) {
+        $errors['name'] = 'Имя должно быть от 2 до 60 символов';
+    }
+
+    $email = trim((string) ($input['email'] ?? ''));
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = 'Некорректный email';
+    }
+
+    $department = trim((string) ($input['department'] ?? ''));
+    if (!in_array($department, $departments, true)) {
+        $errors['department'] = 'Выберите отдел из списка';
+    }
+
+    $experience = filter_var(
+        trim((string) ($input['experience'] ?? '')),
+        FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 0, 'max_range' => 50]]
+    );
+    if ($experience === false) {
+        $errors['experience'] = 'Стаж — целое число от 0 до 50';
+    }
+
+    return $errors;
+}
