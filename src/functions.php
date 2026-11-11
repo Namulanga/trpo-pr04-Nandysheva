@@ -110,3 +110,33 @@ function validateInput(array $input, array $departments): array
 
     return $errors;
 }
+function loadCases(string $path): array
+{
+    if (!is_file($path)) {
+        return [];
+    }
+    $data = json_decode((string) file_get_contents($path), true);
+    return is_array($data) ? $data : [];
+}
+
+function runCases(array $cases, array $departments): array
+{
+    $defaults = [
+        'email'      => 'test@example.test',
+        'department' => $departments[0] ?? '',
+    ];
+
+    $results = [];
+    foreach ($cases as $case) {
+        $errors = validateInput($case + $defaults, $departments);
+        $isValid = $errors === [];
+        $results[] = [
+            'case'     => (string) ($case['case'] ?? ''),
+            'expected' => (bool) ($case['valid'] ?? false),
+            'actual'   => $isValid,
+            'errors'   => $errors,
+            'ok'       => $isValid === (bool) ($case['valid'] ?? false),
+        ];
+    }
+    return $results;
+}

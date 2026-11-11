@@ -25,6 +25,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $old   = array_fill_keys($fields, '');
     }
 }
+$caseResults = isset($_GET['cases'])
+    ? runCases(loadCases(DATA_DIR . '/form_cases.json'), $departments)
+    : [];
 
 $appName = 'Заявки сотрудников';
 $total   = count($employees);
@@ -137,6 +140,25 @@ $hasData = $total > 0;
         <button type="submit">Отправить</button>
       </form>
     </section>
+    <?php if ($caseResults !== []): ?>
+      <section id="cases" class="panel">
+        <h2>Самопроверка по form_cases.json</h2>
+        <table>
+          <thead><tr><th>Сценарий</th><th>Ожидается</th><th>Получилось</th><th>Ошибки</th><th>Итог</th></tr></thead>
+          <tbody>
+            <?php foreach ($caseResults as $result): ?>
+              <tr>
+                <td><?= e($result['case']) ?></td>
+                <td><?= $result['expected'] ? 'валидно' : 'ошибка' ?></td>
+                <td><?= $result['actual'] ? 'валидно' : 'ошибка' ?></td>
+                <td><?= e(implode('; ', $result['errors'])) ?></td>
+                <td><?= $result['ok'] ? 'ОК' : 'РАСХОЖДЕНИЕ' ?></td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </section>
+    <?php endif; ?>
   </main>
 </body>
 </html>
